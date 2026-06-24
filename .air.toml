@@ -1,0 +1,15 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ./cmd/goappmon"
+  entrypoint = ["./tmp/main"]
+  include_ext = ["go", "html", "sql", "json"]
+  exclude_dir = ["tmp", "vendor", ".git"]
+  exclude_regex = ["_test\\.go"]
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = true

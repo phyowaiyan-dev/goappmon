@@ -1,0 +1,522 @@
+{{ define "content" }}
+<div class="space-y-6">
+  <section class="card border border-base-300 bg-base-200 shadow-sm">
+    <div class="card-body">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="card-title text-base-content">Application</h2>
+        {{ if .CurrentAdmin }}
+        <div class="badge badge-outline badge-success px-3 py-3 text-success-content">Signed in as {{ .CurrentAdmin.Name }}</div>
+        {{ end }}
+      </div>
+      <form method="post" action="/admin/settings/application" class="mt-2 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] lg:items-end">
+        <label class="form-control">
+          <span class="label-text mb-2 text-sm text-base-content/70">App name</span>
+          <input name="app_name" value="{{ .Settings.AppName }}" class="input input-bordered w-full">
+        </label>
+        <label class="form-control">
+          <span class="label-text mb-2 text-sm text-base-content/70">API URL</span>
+          <input name="api_url" value="{{ .Settings.APIURL }}" class="input input-bordered w-full" placeholder="https://api.example.com">
+        </label>
+        <div class="lg:pb-0">
+          <button class="btn btn-primary">Save application</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="card border border-base-300 bg-base-200 shadow-sm">
+    <div class="card-body">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.25em] text-base-content/50">Releases</p>
+          <h2 class="mt-2 text-2xl font-semibold text-base-content">Android and iOS versions</h2>
+          <p class="mt-2 max-w-2xl text-sm text-base-content/70">Keep version history and platform toggles in one place.</p>
+        </div>
+        <form method="post" action="/admin/platforms" class="grid gap-3 rounded-box border border-base-300 bg-base-100 p-4 sm:min-w-80">
+          <div class="text-sm font-semibold uppercase tracking-[0.2em] text-base-content/60">Platform toggles</div>
+          <label class="flex items-center justify-between gap-4 rounded-box border border-base-300 bg-base-200 px-4 py-3">
+            <div>
+              <span class="block text-sm font-medium text-base-content">Android</span>
+              <span class="block text-xs text-base-content/60">Enable Android release controls.</span>
+            </div>
+            <input type="checkbox" name="android_enabled" value="true" class="toggle toggle-primary" {{ if .Settings.AndroidEnabled }}checked{{ end }}>
+          </label>
+          <label class="flex items-center justify-between gap-4 rounded-box border border-base-300 bg-base-200 px-4 py-3">
+            <div>
+              <span class="block text-sm font-medium text-base-content">iOS</span>
+              <span class="block text-xs text-base-content/60">Enable iOS release controls.</span>
+            </div>
+            <input type="checkbox" name="ios_enabled" value="true" class="toggle toggle-primary" {{ if .Settings.IOSEnabled }}checked{{ end }}>
+          </label>
+          <div>
+            <button class="btn btn-primary">Save toggles</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="mt-6 grid gap-6 xl:grid-cols-2">
+        <section class="rounded-box border border-base-300 bg-base-100 p-5">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.25em] text-base-content/50">Android</p>
+              <h3 class="mt-2 text-lg font-semibold text-base-content">Current version</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              {{ if .Settings.AndroidEnabled }}
+              <span class="badge badge-success badge-outline">Enabled</span>
+              {{ else }}
+              <span class="badge badge-error badge-outline">Disabled</span>
+              {{ end }}
+              {{ if gt (len .AndroidReleases) 1 }}
+              <form method="post" action="/admin/version/android/delete" onsubmit="return confirm('Delete the latest Android version?')" class="shrink-0">
+                <button class="btn btn-error btn-outline btn-xs">Delete latest</button>
+              </form>
+              {{ end }}
+            </div>
+          </div>
+          <div class="mt-4 stats stats-horizontal w-full rounded-box border border-base-300 bg-base-200 shadow-sm">
+            <div class="stat place-items-center">
+              <div class="stat-title">Latest</div>
+              <div class="stat-value text-base-content">{{ .Settings.AndroidLatestVersion }}</div>
+              <div class="stat-desc">Most recent Android release</div>
+            </div>
+            <div class="stat place-items-center">
+              <div class="stat-title">Minimum</div>
+              <div class="stat-value text-base-content">{{ .Settings.AndroidMinVersion }}</div>
+              <div class="stat-desc">Lowest supported Android release</div>
+            </div>
+            <div class="stat place-items-center">
+              <div class="stat-title">Force update</div>
+              {{ if .Settings.AndroidForceUpdate }}
+              <div class="badge badge-error badge-outline px-4 py-3 text-lg font-semibold">Enabled</div>
+              {{ else }}
+              <div class="badge badge-info badge-outline px-4 py-3 text-lg font-semibold">Disabled</div>
+              {{ end }}
+              <div class="stat-desc">Users must update before continuing</div>
+            </div>
+          </div>
+
+          {{ if .Settings.AndroidEnabled }}
+          <form method="post" action="/admin/version/android" class="mt-5 grid gap-4">
+            <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,240px)]">
+              <input name="latest_version" class="input input-bordered input-md w-full" placeholder="Latest version" pattern="^\d+\.\d+\.\d+$" title="Use major.minor.patch format, for example 1.0.1">
+              <input name="minimum_version" class="input input-bordered input-md w-full" placeholder="Minimum version" pattern="^\d+\.\d+\.\d+$" title="Use major.minor.patch format, for example 1.0.1">
+              <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200 px-4 py-3">
+                <div class="min-w-0">
+                  <span class="block text-sm font-medium text-base-content">Force update</span>
+                  <span class="block text-xs text-base-content/60">Require update before use</span>
+                </div>
+                <input type="checkbox" name="force_update" value="true" class="toggle toggle-primary shrink-0">
+              </label>
+            </div>
+            <textarea name="release_notes" rows="3" wrap="soft" class="textarea textarea-bordered w-full resize-y overflow-x-hidden whitespace-pre-wrap break-words" placeholder="Release notes"></textarea>
+            <div><button class="btn btn-primary">Publish Android version</button></div>
+          </form>
+          {{ else }}
+          <div class="mt-5 rounded-box border border-base-300 bg-base-100 p-4 text-sm text-base-content/70">
+            Android is disabled. Turn it on above to add releases.
+          </div>
+          {{ end }}
+
+          <div class="mt-6 overflow-hidden rounded-box border border-base-300">
+            <table class="table table-zebra">
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Minimum</th>
+                  <th>Status</th>
+                  <th>Added</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{ range .AndroidReleases }}
+                <tr>
+                  <td class="font-medium">{{ .LatestVersion }}</td>
+                  <td>{{ .MinimumVersion }}</td>
+                  <td>
+                    {{ if .ForceUpdate }}
+                    <span class="badge badge-error badge-outline">Force update</span>
+                    {{ else }}
+                    <span class="badge badge-info badge-outline">Optional</span>
+                    {{ end }}
+                  </td>
+                  <td>{{ humanTime .CreatedAt }}</td>
+                </tr>
+                {{ else }}
+                <tr><td colspan="4" class="py-6 text-center text-base-content/50">No Android release history yet.</td></tr>
+                {{ end }}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="rounded-box border border-base-300 bg-base-100 p-5">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.25em] text-base-content/50">iOS</p>
+              <h3 class="mt-2 text-lg font-semibold text-base-content">Current version</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              {{ if .Settings.IOSEnabled }}
+              <span class="badge badge-success badge-outline">Enabled</span>
+              {{ else }}
+              <span class="badge badge-error badge-outline">Disabled</span>
+              {{ end }}
+              {{ if gt (len .IOSReleases) 1 }}
+              <form method="post" action="/admin/version/ios/delete" onsubmit="return confirm('Delete the latest iOS version?')" class="shrink-0">
+                <button class="btn btn-error btn-outline btn-xs">Delete latest</button>
+              </form>
+              {{ end }}
+            </div>
+          </div>
+          <div class="mt-4 stats stats-horizontal w-full rounded-box border border-base-300 bg-base-200 shadow-sm">
+            <div class="stat place-items-center">
+              <div class="stat-title">Latest</div>
+              <div class="stat-value text-base-content">{{ .Settings.IOSLatestVersion }}</div>
+              <div class="stat-desc">Most recent iOS release</div>
+            </div>
+            <div class="stat place-items-center">
+              <div class="stat-title">Minimum</div>
+              <div class="stat-value text-base-content">{{ .Settings.IOSMinVersion }}</div>
+              <div class="stat-desc">Lowest supported iOS release</div>
+            </div>
+            <div class="stat place-items-center">
+              <div class="stat-title">Force update</div>
+              {{ if .Settings.IOSForceUpdate }}
+              <div class="badge badge-error badge-outline px-4 py-3 text-lg font-semibold">Enabled</div>
+              {{ else }}
+              <div class="badge badge-info badge-outline px-4 py-3 text-lg font-semibold">Disabled</div>
+              {{ end }}
+              <div class="stat-desc">Users must update before continuing</div>
+            </div>
+          </div>
+
+          {{ if .Settings.IOSEnabled }}
+          <form method="post" action="/admin/version/ios" class="mt-5 grid gap-4">
+            <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,240px)]">
+              <input name="latest_version" class="input input-bordered input-md w-full" placeholder="Latest version" pattern="^\d+\.\d+\.\d+$" title="Use major.minor.patch format, for example 1.0.1">
+              <input name="minimum_version" class="input input-bordered input-md w-full" placeholder="Minimum version" pattern="^\d+\.\d+\.\d+$" title="Use major.minor.patch format, for example 1.0.1">
+              <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200 px-4 py-3">
+                <div class="min-w-0">
+                  <span class="block text-sm font-medium text-base-content">Force update</span>
+                  <span class="block text-xs text-base-content/60">Require update before use</span>
+                </div>
+                <input type="checkbox" name="force_update" value="true" class="toggle toggle-primary shrink-0">
+              </label>
+            </div>
+            <textarea name="release_notes" rows="3" wrap="soft" class="textarea textarea-bordered w-full resize-y overflow-x-hidden whitespace-pre-wrap break-words" placeholder="Release notes"></textarea>
+            <div><button class="btn btn-primary">Publish iOS version</button></div>
+          </form>
+          {{ else }}
+          <div class="mt-5 rounded-box border border-base-300 bg-base-100 p-4 text-sm text-base-content/70">
+            iOS is disabled. Turn it on above to add releases.
+          </div>
+          {{ end }}
+
+          <div class="mt-6 overflow-hidden rounded-box border border-base-300">
+            <table class="table table-zebra">
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Minimum</th>
+                  <th>Status</th>
+                  <th>Added</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{ range .IOSReleases }}
+                <tr>
+                  <td class="font-medium">{{ .LatestVersion }}</td>
+                  <td>{{ .MinimumVersion }}</td>
+                  <td>
+                    {{ if .ForceUpdate }}
+                    <span class="badge badge-error badge-outline">Force update</span>
+                    {{ else }}
+                    <span class="badge badge-info badge-outline">Optional</span>
+                    {{ end }}
+                  </td>
+                  <td>{{ humanTime .CreatedAt }}</td>
+                </tr>
+                {{ else }}
+                <tr><td colspan="4" class="py-6 text-center text-base-content/50">No iOS release history yet.</td></tr>
+                {{ end }}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section class="card border border-base-300 bg-base-200 shadow-sm">
+    <div class="card-body">
+      <h2 class="card-title text-base-content">Maintenance</h2>
+      <form method="post" action="/admin/settings/maintenance" class="mt-2 grid gap-4" data-state-form="maintenance">
+        <input type="hidden" data-state-fallback name="maintenance_message" value="{{ .Settings.MaintenanceMessage }}">
+        <label class="flex items-center justify-between gap-4 rounded-box border border-base-300 bg-base-100 px-4 py-4">
+          <div>
+            <span class="block text-sm font-medium text-base-content">Mode</span>
+            <span class="block text-xs text-base-content/60">Enable maintenance mode to show a message.</span>
+          </div>
+          <input type="checkbox" name="maintenance_mode" value="true" class="toggle toggle-primary" data-state-toggle="maintenance" {{ if .Settings.MaintenanceMode }}checked{{ end }}>
+        </label>
+        <div class="{{ if not .Settings.MaintenanceMode }}hidden{{ end }}" data-state-panel="maintenance">
+          <label class="form-control">
+            <span class="label-text mb-2 text-sm text-base-content/70">Message</span>
+            <textarea name="maintenance_message" rows="4" class="textarea textarea-bordered w-full" data-state-message="maintenance">{{ .Settings.MaintenanceMessage }}</textarea>
+          </label>
+        </div>
+        <div><button class="btn btn-primary">Save maintenance</button></div>
+      </form>
+
+      <div class="mt-6 overflow-hidden rounded-box border border-base-300">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Message</th>
+              <th>Added</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range .MaintenanceHistory }}
+            <tr>
+              <td>
+                {{ if .Enabled }}
+                <span class="badge badge-success badge-outline">Enabled</span>
+                {{ else }}
+                <span class="badge badge-warning">Disabled</span>
+                {{ end }}
+              </td>
+              <td>{{ if .Message }}{{ .Message }}{{ else }}<span class="text-base-content/40">—</span>{{ end }}</td>
+              <td>{{ humanTime .CreatedAt }}</td>
+            </tr>
+            {{ else }}
+            <tr><td colspan="3" class="py-6 text-center text-base-content/50">No maintenance history yet.</td></tr>
+            {{ end }}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card border border-base-300 bg-base-200 shadow-sm">
+    <div class="card-body">
+      <h2 class="card-title text-base-content">Banner</h2>
+      <form method="post" action="/admin/settings/banner" class="mt-2 grid gap-4" data-state-form="banner">
+        <input type="hidden" data-state-fallback name="banner_message" value="{{ .Settings.BannerMessage }}">
+        <label class="flex items-center justify-between gap-4 rounded-box border border-base-300 bg-base-100 px-4 py-4">
+          <div>
+            <span class="block text-sm font-medium text-base-content">Mode</span>
+            <span class="block text-xs text-base-content/60">Enable banner mode to show a message.</span>
+          </div>
+          <input type="checkbox" name="banner_enabled" value="true" class="toggle toggle-primary" data-state-toggle="banner" {{ if .Settings.BannerEnabled }}checked{{ end }}>
+        </label>
+        <div class="{{ if not .Settings.BannerEnabled }}hidden{{ end }}" data-state-panel="banner">
+          <label class="form-control">
+            <span class="label-text mb-2 text-sm text-base-content/70">Message</span>
+            <textarea name="banner_message" rows="4" class="textarea textarea-bordered w-full" data-state-message="banner">{{ .Settings.BannerMessage }}</textarea>
+          </label>
+        </div>
+        <div><button class="btn btn-primary">Save banner</button></div>
+      </form>
+
+      <div class="mt-6 overflow-hidden rounded-box border border-base-300">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Message</th>
+              <th>Added</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range .BannerHistory }}
+            <tr>
+              <td>
+                {{ if .Enabled }}
+                <span class="badge badge-success badge-outline">Enabled</span>
+                {{ else }}
+                <span class="badge badge-warning">Disabled</span>
+                {{ end }}
+              </td>
+              <td>{{ if .Message }}{{ .Message }}{{ else }}<span class="text-base-content/40">—</span>{{ end }}</td>
+              <td>{{ humanTime .CreatedAt }}</td>
+            </tr>
+            {{ else }}
+            <tr><td colspan="3" class="py-6 text-center text-base-content/50">No banner history yet.</td></tr>
+            {{ end }}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card border border-base-300 bg-base-200 shadow-sm">
+    <div class="card-body">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h2 class="card-title text-base-content">Feature flags</h2>
+          <p class="mt-1 text-sm text-base-content/70">Create and manage feature switches for clients.</p>
+        </div>
+      </div>
+
+      <form method="post" action="/admin/feature-flags" class="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <label class="form-control">
+          <span class="label-text mb-2 text-sm text-base-content/70">Flag key</span>
+          <input name="key" class="input input-bordered w-full" placeholder="chat">
+        </label>
+        <div>
+          <button class="btn btn-primary">Create flag</button>
+        </div>
+      </form>
+
+      <div class="mt-6 overflow-hidden rounded-box border border-base-300">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range .Flags }}
+            <tr>
+              <td class="align-top">
+                <form method="post" action="/admin/feature-flags/{{ .ID }}" class="space-y-3">
+                  <input name="key" value="{{ .Key }}" class="input input-bordered w-full">
+              </td>
+              <td class="align-top">
+                  <label class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200 px-4 py-3">
+                    <div>
+                      <span class="block text-sm font-medium text-base-content">Status</span>
+                      <span class="block text-xs text-base-content/60">{{ if .Enabled }}Enabled{{ else }}Disabled{{ end }}</span>
+                    </div>
+                    <input type="checkbox" name="enabled" value="true" class="toggle toggle-primary" {{ if .Enabled }}checked{{ end }}>
+                  </label>
+              </td>
+              <td class="align-top">
+                  <div class="flex flex-wrap gap-2">
+                    <button class="btn btn-primary btn-sm">Update</button>
+                </form>
+                    <form method="post" action="/admin/feature-flags/{{ .ID }}/delete">
+                      <button class="btn btn-error btn-outline btn-sm">Delete</button>
+                    </form>
+                  </div>
+              </td>
+            </tr>
+            {{ else }}
+            <tr><td colspan="3" class="py-6 text-center text-base-content/50">No feature flags yet.</td></tr>
+            {{ end }}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  {{ template "system-health-panel" . }}
+
+  <section class="card border border-base-300 bg-base-200 shadow-sm">
+    <div class="card-body">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h2 class="card-title text-base-content">Audit log</h2>
+          <p class="mt-1 text-sm text-base-content/70">Recent system changes with actor, entity, and request data.</p>
+        </div>
+        <a href="/admin/audit-logs" class="btn btn-ghost btn-sm">See All logs</a>
+      </div>
+
+      <div class="mt-6 overflow-hidden rounded-box border border-base-300">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Actor</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range .AuditLogs }}
+            <tr>
+              <td class="font-medium">{{ .Action }}</td>
+              <td>{{ .EntityType }} {{ if .EntityID }}#{{ .EntityID }}{{ end }}</td>
+              <td>
+                <div>{{ if .ActorAdminID }}Admin #{{ .ActorAdminID }}{{ else }}System{{ end }}</div>
+                <div class="text-xs text-base-content/50">{{ .IP }}</div>
+              </td>
+              <td>{{ humanTime .CreatedAt }}</td>
+            </tr>
+            {{ else }}
+            <tr><td colspan="4" class="py-6 text-center text-base-content/50">No audit log entries yet.</td></tr>
+            {{ end }}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+  (() => {
+    const success = new URLSearchParams(window.location.search).get('success');
+    const resetKinds = new Set(['maintenance_updated', 'banner_updated']);
+    const forms = document.querySelectorAll('[data-state-form]');
+
+    const syncStateForm = (form) => {
+      const key = form.getAttribute('data-state-form');
+      const toggle = form.querySelector(`[data-state-toggle="${key}"]`);
+      const panel = form.querySelector(`[data-state-panel="${key}"]`);
+      const fallback = form.querySelector(`[data-state-fallback]`);
+      const message = form.querySelector(`[data-state-message="${key}"]`);
+
+      if (!toggle || !panel || !fallback || !message) return;
+
+      const fieldName = fallback.getAttribute('name');
+      let shouldResetStateForm = resetKinds.has(success || '') && success?.startsWith(key);
+
+      const applyState = () => {
+        if (shouldResetStateForm) {
+          toggle.checked = false;
+          panel.classList.add('hidden');
+          message.value = '';
+          fallback.value = '';
+          fallback.disabled = false;
+          fallback.setAttribute('name', fieldName);
+          message.disabled = true;
+          message.removeAttribute('name');
+          shouldResetStateForm = false;
+          return;
+        }
+
+        const enabled = toggle.checked;
+        panel.classList.toggle('hidden', !enabled);
+
+        if (enabled) {
+          message.disabled = false;
+          message.setAttribute('name', fieldName);
+          message.value = fallback.value;
+          fallback.disabled = true;
+          fallback.removeAttribute('name');
+        } else {
+          message.value = '';
+          fallback.value = '';
+          fallback.disabled = false;
+          fallback.setAttribute('name', fieldName);
+          message.disabled = true;
+          message.removeAttribute('name');
+        }
+      };
+
+      message.addEventListener('input', () => {
+        fallback.value = message.value;
+      });
+
+      toggle.addEventListener('change', applyState);
+      applyState();
+    };
+
+    forms.forEach(syncStateForm);
+  })();
+</script>
+{{ end }}

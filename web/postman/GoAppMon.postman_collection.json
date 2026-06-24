@@ -1,0 +1,145 @@
+{
+  "info": {
+    "name": "GoAppMon API",
+    "description": "Sample Postman collection for GoAppMon public and admin API workflows.",
+    "_postman_id": "c4c1f6f0-8a68-4d8f-a5f6-6d4e9f1c9a01",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:18180"
+    },
+    {
+      "key": "admin_email",
+      "value": "admin@example.com"
+    },
+    {
+      "key": "admin_password",
+      "value": "secret123"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "status"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Version",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/version",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "version"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Config",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/config",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "config"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Feature Flags",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/feature-flags",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "feature-flags"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "{{admin_email}}",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "{{admin_password}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "admin",
+            "login"
+          ]
+        }
+      }
+    }
+  ]
+}

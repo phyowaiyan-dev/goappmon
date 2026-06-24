@@ -1,0 +1,174 @@
+{{ define "system-health-panel" }}
+<section id="system-health-panel" class="card overflow-hidden border border-base-300 bg-base-200 shadow-sm">
+  <div class="card-body gap-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="max-w-3xl">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="badge badge-info badge-outline">System health</span>
+          <span class="text-xs text-base-content/50">Last refreshed {{ humanTime .SystemHealth.UpdatedAt }}</span>
+        </div>
+        <h3 class="mt-3 text-2xl font-semibold text-base-content">Server and runtime overview</h3>
+        <p class="mt-2 text-sm text-base-content/70">Track host CPU, memory, disk pressure, app runtime stats, and SQLite storage in one dashboard.</p>
+      </div>
+      <div class="min-w-72 rounded-box border border-base-300 bg-base-100 px-5 py-4 text-center shadow-sm">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center justify-center gap-2 text-sm uppercase tracking-[0.25em] text-base-content/50">
+            <span class="size-2 rounded-full bg-{{ .SystemHealth.ScoreTone }}"></span>
+            Health score
+          </div>
+          <button type="button" class="btn btn-primary btn-xs gap-2" hx-get="/admin/system-health" hx-target="#system-health-panel" hx-swap="outerHTML">
+            <span class="loading loading-spinner loading-xs htmx-indicator"></span>
+            Refresh now
+          </button>
+        </div>
+        <div class="mt-2 text-6xl font-black text-base-content">{{ .SystemHealth.Score }}</div>
+        <div class="mt-1 text-sm font-semibold uppercase tracking-[0.25em] text-base-content/70">{{ .SystemHealth.Status }}</div>
+        <div class="mt-4 flex items-center gap-3">
+          <div class="h-2 flex-1 overflow-hidden rounded-full bg-base-300">
+            <div class="h-full rounded-full bg-{{ .SystemHealth.ScoreTone }}" style="width: {{ .SystemHealth.Score }}%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div class="rounded-box border border-base-300 bg-base-100 p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-base-content/50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 5h16M4 12h16M4 19h16" />
+              </svg>
+              CPU
+            </div>
+            <div class="mt-2 text-3xl font-black text-{{ usageTone .SystemHealth.CPUUsagePercent }}">{{ printf "%.1f" .SystemHealth.CPUUsagePercent }}%</div>
+            <div class="mt-1 text-sm text-base-content/60">{{ .SystemHealth.NumCPU }} cores · system-wide load</div>
+          </div>
+        </div>
+        <div class="mt-4 h-2 overflow-hidden rounded-full bg-base-300">
+          <div class="h-full rounded-full bg-{{ usageTone .SystemHealth.CPUUsagePercent }}" style="width: {{ .SystemHealth.CPUUsagePercent }}%;"></div>
+        </div>
+      </div>
+
+      <div class="rounded-box border border-base-300 bg-base-100 p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-base-content/50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 7h16v10H4z" />
+                <path d="M7 11h10" />
+              </svg>
+              Memory
+            </div>
+            <div class="mt-2 text-3xl font-black text-{{ usageTone .SystemHealth.MemoryUsedPercent }}">{{ printf "%.1f" .SystemHealth.MemoryUsedPercent }}%</div>
+            <div class="mt-1 text-sm text-base-content/60">{{ printf "%.1f" .SystemHealth.MemoryUsedMB }} MB used of {{ printf "%.1f" .SystemHealth.MemoryTotalMB }} MB</div>
+          </div>
+          <span class="badge badge-{{ usageTone .SystemHealth.MemoryUsedPercent }} badge-outline">Host</span>
+        </div>
+        <div class="mt-4 h-2 overflow-hidden rounded-full bg-base-300">
+          <div class="h-full rounded-full bg-{{ usageTone .SystemHealth.MemoryUsedPercent }}" style="width: {{ .SystemHealth.MemoryUsedPercent }}%;"></div>
+        </div>
+        <div class="mt-3 text-xs text-base-content/50">Free: {{ printf "%.1f" .SystemHealth.MemoryFreeMB }} MB</div>
+      </div>
+
+      <div class="rounded-box border border-base-300 bg-base-100 p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-base-content/50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 7h16M4 12h16M4 17h16" />
+                <path d="M9 7v10" />
+              </svg>
+              Disk
+            </div>
+            <div class="mt-2 text-3xl font-black text-{{ usageTone .SystemHealth.DiskUsedPercent }}">{{ printf "%.1f" .SystemHealth.DiskUsedPercent }}%</div>
+            <div class="mt-1 text-sm text-base-content/60">{{ printf "%.1f" .SystemHealth.DiskUsedGB }} GB used of {{ printf "%.1f" .SystemHealth.DiskTotalGB }} GB</div>
+          </div>
+          <span class="badge badge-{{ usageTone .SystemHealth.DiskUsedPercent }} badge-outline">Storage</span>
+        </div>
+        <div class="mt-4 h-2 overflow-hidden rounded-full bg-base-300">
+          <div class="h-full rounded-full bg-{{ usageTone .SystemHealth.DiskUsedPercent }}" style="width: {{ .SystemHealth.DiskUsedPercent }}%;"></div>
+        </div>
+        <div class="mt-3 break-all text-xs text-base-content/50">{{ .SystemHealth.SQLiteFilePath }}</div>
+      </div>
+    </div>
+
+    <div class="stats stats-vertical w-full shadow lg:stats-horizontal">
+      <div class="stat">
+        <div class="stat-figure text-info">
+          <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-8 w-8 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m-9 0A9 9 0 1112 3a9 9 0 010 18" />
+          </svg>
+        </div>
+        <div class="stat-title">Process uptime</div>
+        <div class="stat-value text-base-content">{{ .SystemHealth.Uptime }}</div>
+        <div class="stat-desc">How long GoAppMon has been running</div>
+      </div>
+      <div class="stat">
+        <div class="stat-figure text-success">
+          <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-8 w-8 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </div>
+        <div class="stat-title">System uptime</div>
+        <div class="stat-value text-base-content">{{ if .SystemHealth.SystemUptime }}{{ .SystemHealth.SystemUptime }}{{ else }}unavailable{{ end }}</div>
+        <div class="stat-desc">How long the host machine has been up</div>
+      </div>
+      <div class="stat">
+        <div class="stat-figure text-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-8 w-8 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16v12H4zM8 10h8" />
+          </svg>
+        </div>
+        <div class="stat-title">App memory</div>
+        <div class="stat-value text-base-content">{{ printf "%.1f" .SystemHealth.AllocMB }} MB</div>
+        <div class="stat-desc">Runtime sys: {{ printf "%.1f" .SystemHealth.SysMB }} MB</div>
+      </div>
+      <div class="stat">
+        <div class="stat-figure text-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-8 w-8 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+          </svg>
+        </div>
+        <div class="stat-title">Goroutines</div>
+        <div class="stat-value text-base-content">{{ .SystemHealth.NumGoroutine }}</div>
+        <div class="stat-desc">Go {{ .SystemHealth.GoVersion }}</div>
+      </div>
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-3">
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <div class="text-xs uppercase tracking-[0.25em] text-base-content/50">SQLite storage</div>
+        <div class="mt-2 text-xl font-semibold text-base-content">{{ .SystemHealth.SQLiteFileSize }}</div>
+        <div class="mt-1 break-all text-sm text-base-content/60">{{ .SystemHealth.SQLiteFilePath }}</div>
+      </div>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <div class="text-xs uppercase tracking-[0.25em] text-base-content/50">Health style</div>
+        <div class="mt-2 inline-flex rounded-full border border-{{ .SystemHealth.ScoreTone }} px-3 py-1 text-sm font-semibold text-{{ .SystemHealth.ScoreTone }}">
+          {{ .SystemHealth.Status }}
+        </div>
+        <div class="mt-2 text-sm text-base-content/60">Score reflects host pressure across CPU, memory, disk, and runtime signals.</div>
+      </div>
+      <div class="rounded-box border border-base-300 bg-base-100 p-4">
+        <div class="flex items-center justify-between">
+          <div class="text-xs uppercase tracking-[0.25em] text-base-content/50">Last refresh</div>
+          <span class="badge badge-outline badge-info">Manual</span>
+        </div>
+        <div class="mt-2 text-xl font-semibold text-base-content">{{ humanTime .SystemHealth.UpdatedAt }}</div>
+        <div class="mt-1 text-sm text-base-content/60">Click refresh to fetch the latest machine snapshot.</div>
+      </div>
+    </div>
+
+    {{ if .SystemHealth.HealthNotes }}
+    <div class="rounded-box border border-base-300 bg-base-100 p-4">
+      <div class="text-sm font-semibold uppercase tracking-[0.25em] text-base-content/50">Signals</div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {{ range .SystemHealth.HealthNotes }}
+        <span class="badge badge-outline badge-warning">{{ . }}</span>
+        {{ end }}
+      </div>
+    </div>
+    {{ end }}
+  </div>
+</section>
+{{ end }}
