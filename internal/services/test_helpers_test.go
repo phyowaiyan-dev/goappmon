@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/phyowaiyan-dev/goappmon/internal/database"
-	"github.com/phyowaiyan-dev/goappmon/internal/models"
 )
 
 func repositoriesTestDB(t *testing.T) *sql.DB {
@@ -25,12 +24,4 @@ func repositoriesTestDB(t *testing.T) *sql.DB {
 		_ = db.Close()
 	})
 	return db
-}
-
-func adminRow(name, email, hash string) models.Admin {
-	return models.Admin{
-		Name:         name,
-		Email:        email,
-		PasswordHash: hash,
-	}
 }

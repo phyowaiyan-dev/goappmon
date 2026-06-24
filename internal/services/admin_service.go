@@ -644,17 +644,18 @@ func calculateHealthScore(cpuUsage float64, memInfo *mem.VirtualMemoryStat, memE
 		score = 36
 	}
 
-	status := "Healthy"
-	switch {
-	case score >= 90:
-		status = "Excellent"
-	case score >= 75:
-		status = "Good"
-	case score >= 55:
-		status = "Fair"
-	default:
-		status = "Needs attention"
-	}
+	status := func() string {
+		switch {
+		case score >= 90:
+			return "Excellent"
+		case score >= 75:
+			return "Good"
+		case score >= 55:
+			return "Fair"
+		default:
+			return "Needs attention"
+		}
+	}()
 
 	return int(score + 0.5), status, notes
 }
