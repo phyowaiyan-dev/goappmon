@@ -1,0 +1,40 @@
+name: Docs
+
+on:
+  push:
+    paths:
+      - "README.md"
+      - "docs/**"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "README.md"
+      - "docs/**"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+jobs:
+  validate-docs:
+    name: Validate docs structure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required docs files exist
+        run: |
+          test -f README.md
+          test -f docs/README.md
+          test -f docs/project-overview.md
+          test -f docs/tech-stack.md
+          test -f docs/architecture.md
+          test -f docs/development.md
+          test -f docs/testing.md
+          test -f docs/release.md
+          test -f docs/security.md
+          test -f docs/contributing.md
+          test -f docs/roadmap.md
+
+      - name: Print docs tree
+        run: find docs -maxdepth 1 -type f | sort

@@ -1,0 +1,254 @@
+{{ define "body" }}
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur">
+    <h2 class="text-xl font-semibold text-white">Application</h2>
+    <form method="post" action="/admin/settings/application" class="mt-4 space-y-4">
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">App name</span>
+        <input name="app_name" value="{{ .Settings.AppName }}" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">API URL</span>
+        <input name="api_url" value="{{ .Settings.APIURL }}" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400" placeholder="https://api.example.com">
+      </label>
+      <button class="rounded-2xl bg-cyan-400 px-4 py-2 font-semibold text-slate-950">Save application</button>
+    </form>
+  </section>
+
+  <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur">
+    <h2 class="text-xl font-semibold text-white">Version Management</h2>
+    <form method="post" action="/admin/settings/version" class="mt-4 grid gap-4 md:grid-cols-2">
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">Android latest</span>
+        <input name="android_latest_version" value="{{ .Settings.AndroidLatestVersion }}" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">Android minimum</span>
+        <input name="android_min_version" value="{{ .Settings.AndroidMinVersion }}" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">Android force update</span>
+        <select name="android_force_update" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+          <option value="false" {{ if not .Settings.AndroidForceUpdate }}selected{{ end }}>Disabled</option>
+          <option value="true" {{ if .Settings.AndroidForceUpdate }}selected{{ end }}>Enabled</option>
+        </select>
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">iOS latest</span>
+        <input name="ios_latest_version" value="{{ .Settings.IOSLatestVersion }}" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">iOS minimum</span>
+        <input name="ios_min_version" value="{{ .Settings.IOSMinVersion }}" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">iOS force update</span>
+        <select name="ios_force_update" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+          <option value="false" {{ if not .Settings.IOSForceUpdate }}selected{{ end }}>Disabled</option>
+          <option value="true" {{ if .Settings.IOSForceUpdate }}selected{{ end }}>Enabled</option>
+        </select>
+      </label>
+      <div class="md:col-span-2">
+        <button class="rounded-2xl bg-cyan-400 px-4 py-2 font-semibold text-slate-950">Save versions</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur">
+    <h2 class="text-xl font-semibold text-white">Maintenance</h2>
+    <form method="post" action="/admin/settings/maintenance" class="mt-4 space-y-4">
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">Mode</span>
+        <select name="maintenance_mode" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+          <option value="false" {{ if not .Settings.MaintenanceMode }}selected{{ end }}>Disabled</option>
+          <option value="true" {{ if .Settings.MaintenanceMode }}selected{{ end }}>Enabled</option>
+        </select>
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">Message</span>
+        <textarea name="maintenance_message" rows="4" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">{{ .Settings.MaintenanceMessage }}</textarea>
+      </label>
+      <button class="rounded-2xl bg-cyan-400 px-4 py-2 font-semibold text-slate-950">Save maintenance</button>
+    </form>
+  </section>
+
+  <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur">
+    <h2 class="text-xl font-semibold text-white">Banner</h2>
+    <form method="post" action="/admin/settings/banner" class="mt-4 space-y-4">
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">Enabled</span>
+        <select name="banner_enabled" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+          <option value="false" {{ if not .Settings.BannerEnabled }}selected{{ end }}>Disabled</option>
+          <option value="true" {{ if .Settings.BannerEnabled }}selected{{ end }}>Enabled</option>
+        </select>
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-slate-300">Message</span>
+        <textarea name="banner_message" rows="4" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">{{ .Settings.BannerMessage }}</textarea>
+      </label>
+      <button class="rounded-2xl bg-cyan-400 px-4 py-2 font-semibold text-slate-950">Save banner</button>
+    </form>
+  </section>
+</div>
+
+<section class="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur">
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-white">Feature Flags</h2>
+      <p class="mt-1 text-sm text-slate-300">Create and manage feature switches for mobile and web clients.</p>
+    </div>
+  </div>
+
+  <form method="post" action="/admin/feature-flags" class="mt-6 grid gap-4 md:grid-cols-3">
+    <label class="block md:col-span-2">
+      <span class="mb-2 block text-sm text-slate-300">Flag key</span>
+      <input name="key" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400" placeholder="chat">
+    </label>
+    <label class="block">
+      <span class="mb-2 block text-sm text-slate-300">Enabled</span>
+      <select name="enabled" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-white focus:border-cyan-400">
+        <option value="false">Disabled</option>
+        <option value="true">Enabled</option>
+      </select>
+    </label>
+    <div class="md:col-span-3">
+      <button class="rounded-2xl bg-cyan-400 px-4 py-2 font-semibold text-slate-950">Create flag</button>
+    </div>
+  </form>
+
+  <div class="mt-8 overflow-hidden rounded-2xl border border-white/10">
+    <table class="min-w-full divide-y divide-white/10 text-left text-sm">
+      <thead class="bg-white/5 text-slate-300">
+        <tr>
+          <th class="px-4 py-3 font-medium">Key</th>
+          <th class="px-4 py-3 font-medium">Enabled</th>
+          <th class="px-4 py-3 font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/10 bg-slate-950/30">
+        {{ range .Flags }}
+        <tr>
+          <td class="px-4 py-3 align-top">
+            <form method="post" action="/admin/feature-flags/{{ .ID }}" class="space-y-3">
+              <input name="key" value="{{ .Key }}" class="w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-white focus:border-cyan-400">
+          </td>
+          <td class="px-4 py-3 align-top">
+              <select name="enabled" class="w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-white focus:border-cyan-400">
+                <option value="false" {{ if not .Enabled }}selected{{ end }}>Disabled</option>
+                <option value="true" {{ if .Enabled }}selected{{ end }}>Enabled</option>
+              </select>
+          </td>
+          <td class="px-4 py-3 align-top">
+              <div class="flex flex-wrap gap-2">
+                <button class="rounded-xl bg-cyan-400 px-3 py-2 font-semibold text-slate-950">Update</button>
+            </form>
+                <form method="post" action="/admin/feature-flags/{{ .ID }}/delete">
+                  <button class="rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2 font-semibold text-rose-200">Delete</button>
+                </form>
+              </div>
+          </td>
+        </tr>
+        {{ else }}
+        <tr>
+          <td colspan="3" class="px-4 py-6 text-center text-slate-400">No feature flags yet.</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-6 grid gap-6 xl:grid-cols-2">
+    <section class="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20 backdrop-blur">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300/80">API Toolkit</p>
+          <h3 class="mt-2 text-xl font-semibold text-white">Download the sample Postman collection</h3>
+          <p class="mt-2 text-sm text-slate-300">Includes public APIs and a login request so your team can start testing the platform right away.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="/admin/postman-collection" class="rounded-full bg-cyan-400 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-cyan-300" download>
+            Download Postman API
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-400/10 via-white/5 to-slate-900/80 p-6 shadow-xl shadow-black/20 backdrop-blur">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div class="max-w-2xl">
+          <div class="inline-flex items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">
+            System health
+          </div>
+          <h3 class="mt-4 text-2xl font-semibold text-white">Server and runtime overview</h3>
+          <p class="mt-2 text-sm leading-6 text-slate-300">
+            Quick signal from the app process, SQLite storage, and runtime memory. The score gives a fast read on whether the node looks stable or needs attention.
+          </p>
+        </div>
+        <div class="rounded-3xl border border-white/10 bg-slate-950/40 px-5 py-4 text-center shadow-lg shadow-black/20">
+          <div class="text-sm uppercase tracking-[0.3em] text-slate-400">Health score</div>
+          <div class="mt-2 text-5xl font-black text-cyan-300">{{ .SystemHealth.Score }}</div>
+          <div class="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-slate-200">{{ .SystemHealth.Status }}</div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div class="text-xs uppercase tracking-[0.25em] text-slate-400">Uptime</div>
+          <div class="mt-2 text-lg font-semibold text-white">{{ .SystemHealth.Uptime }}</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div class="text-xs uppercase tracking-[0.25em] text-slate-400">Go version</div>
+          <div class="mt-2 text-lg font-semibold text-white">{{ .SystemHealth.GoVersion }}</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div class="text-xs uppercase tracking-[0.25em] text-slate-400">CPU cores</div>
+          <div class="mt-2 text-lg font-semibold text-white">{{ .SystemHealth.NumCPU }}</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div class="text-xs uppercase tracking-[0.25em] text-slate-400">Goroutines</div>
+          <div class="mt-2 text-lg font-semibold text-white">{{ .SystemHealth.NumGoroutine }}</div>
+        </div>
+      </div>
+
+      <div class="mt-4 grid gap-4 lg:grid-cols-3">
+        <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div class="text-xs uppercase tracking-[0.25em] text-slate-400">Memory alloc</div>
+          <div class="mt-2 text-xl font-semibold text-white">{{ printf "%.1f" .SystemHealth.AllocMB }} MB</div>
+          <div class="mt-1 text-sm text-slate-400">Total allocated: {{ printf "%.1f" .SystemHealth.TotalAllocMB }} MB</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div class="text-xs uppercase tracking-[0.25em] text-slate-400">Runtime sys</div>
+          <div class="mt-2 text-xl font-semibold text-white">{{ printf "%.1f" .SystemHealth.SysMB }} MB</div>
+          <div class="mt-1 text-sm text-slate-400">Process memory reserved from the OS</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div class="text-xs uppercase tracking-[0.25em] text-slate-400">SQLite storage</div>
+          <div class="mt-2 text-xl font-semibold text-white">{{ .SystemHealth.SQLiteFileSize }}</div>
+          <div class="mt-1 break-all text-sm text-slate-400">{{ .SystemHealth.SQLiteFilePath }}</div>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <div class="mb-3 flex items-center justify-between text-sm text-slate-300">
+          <span>Health bar</span>
+          <span>{{ .SystemHealth.Score }}/100</span>
+        </div>
+        <div class="h-3 overflow-hidden rounded-full bg-slate-900/80">
+          <div class="h-full rounded-full bg-gradient-to-r from-cyan-400 via-emerald-400 to-lime-300" style="width: {{ .SystemHealth.Score }}%;"></div>
+        </div>
+      </div>
+
+      {{ if .SystemHealth.HealthNotes }}
+      <div class="mt-5 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+        <div class="text-sm font-semibold uppercase tracking-[0.25em] text-amber-200">Signals</div>
+        <ul class="mt-3 space-y-2 text-sm text-amber-50/90">
+          {{ range .SystemHealth.HealthNotes }}
+          <li class="flex gap-2"><span class="mt-1 h-2 w-2 rounded-full bg-amber-300"></span><span>{{ . }}</span></li>
+          {{ end }}
+        </ul>
+      </div>
+      {{ end }}
+    </section>
+  </div>
+</section>
+{{ end }}

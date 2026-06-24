@@ -1,0 +1,22 @@
+name: Question
+description: Ask for help or clarification about the project
+title: "[Question]: "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for support questions, usage clarification, or project guidance.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Ask your question clearly and include context.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Include code, config, or links that help explain the question.

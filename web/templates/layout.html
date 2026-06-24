@@ -1,0 +1,124 @@
+{{ define "layout" }}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ if .Title }}{{ .Title }} · GoAppMon{{ else }}GoAppMon{{ end }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <div class="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-cyan-500/20 to-transparent"></div>
+  <div class="relative mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-6 pb-28 sm:px-6 lg:px-8">
+    <header class="mb-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 px-6 py-5 shadow-2xl shadow-black/20 backdrop-blur md:flex-row md:items-center md:justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300/80">GoAppMon</p>
+        <h1 class="mt-1 text-2xl font-semibold text-white">{{ if .Title }}{{ .Title }}{{ else }}Application Control Center{{ end }}</h1>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-sm">
+        {{ if .CurrentAdmin }}
+        <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-200">Signed in as {{ .CurrentAdmin.Name }}</span>
+        <form method="post" action="/admin/logout">
+          <button class="rounded-full bg-white px-4 py-2 font-medium text-slate-900 transition hover:bg-slate-200">Logout</button>
+        </form>
+        {{ else }}
+        <a class="rounded-full border border-white/15 px-4 py-2 text-slate-200 transition hover:bg-white/10" href="/admin/login">Login</a>
+        {{ end }}
+      </div>
+    </header>
+
+    {{ if .Notice }}
+    <div class="mb-6 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-emerald-100">{{ .Notice }}</div>
+    {{ end }}
+    {{ if .Error }}
+    <div class="mb-6 rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-rose-100">{{ .Error }}</div>
+    {{ end }}
+
+    <main class="flex-1">
+      {{ template "body" . }}
+    </main>
+  </div>
+
+  <div id="about-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 px-4 backdrop-blur-sm">
+    <div class="relative w-full max-w-2xl rounded-3xl border border-white/10 bg-slate-900 p-8 shadow-2xl shadow-black/40">
+      <button type="button" data-close-about class="absolute right-4 top-4 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-300 transition hover:bg-white/10 hover:text-white">
+        Close
+      </button>
+      <p class="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300/80">About this software</p>
+      <h2 class="mt-2 text-3xl font-semibold text-white">Built for control, speed, and clean release management</h2>
+      <p class="mt-4 text-slate-300">
+        GoAppMon is a lightweight application control center for mobile and web products.
+        It gives teams a fast admin surface for version policy, maintenance messaging, banners, and feature flags.
+      </p>
+      <p class="mt-4 text-slate-300">
+        This product is powered by Phyo Wai Yan, who focuses on production-grade software, AI automation, and scalable digital products.
+      </p>
+      <div class="mt-6 grid gap-4 md:grid-cols-2">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p class="text-sm font-semibold text-white">Why it matters</p>
+          <p class="mt-2 text-sm text-slate-300">Ship safer app updates, keep users informed, and manage your rollout strategy from one simple dashboard.</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p class="text-sm font-semibold text-white">What it supports</p>
+          <p class="mt-2 text-sm text-slate-300">Initial setup, secure admin login, public status APIs, and feature flag management in a single Go binary.</p>
+        </div>
+      </div>
+      <div class="mt-6 flex flex-wrap items-center gap-3">
+        <a href="https://www.phyowaiyan.com/" target="_blank" rel="noreferrer" class="rounded-full bg-cyan-400 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-cyan-300">
+          Visit phyowaiyan.com
+        </a>
+        <span class="text-sm text-slate-400">Production-minded tools for modern teams.</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="fixed inset-x-0 bottom-4 z-40 px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 rounded-3xl border border-white/10 bg-slate-900/90 px-5 py-4 text-sm text-slate-300 shadow-2xl shadow-black/30 backdrop-blur sm:flex-row">
+      <button type="button" data-open-about class="rounded-full px-2 py-1 font-medium text-slate-300 transition hover:text-cyan-200">
+        GoAppMon by Phyo Wai Yan
+      </button>
+      <a href="https://www.phyowaiyan.com/" target="_blank" rel="noreferrer" class="font-medium text-cyan-300 transition hover:text-cyan-200">
+        phyowaiyan.com
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const modal = document.getElementById('about-modal');
+      const openButtons = document.querySelectorAll('[data-open-about]');
+      const closeButtons = document.querySelectorAll('[data-close-about]');
+
+      const openModal = () => {
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      };
+
+      const closeModal = () => {
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      };
+
+      openButtons.forEach((button) => button.addEventListener('click', openModal));
+      closeButtons.forEach((button) => button.addEventListener('click', closeModal));
+
+      if (modal) {
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) {
+            closeModal();
+          }
+        });
+      }
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closeModal();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+{{ end }}
