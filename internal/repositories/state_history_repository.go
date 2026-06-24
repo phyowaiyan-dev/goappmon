@@ -50,7 +50,9 @@ func (r *StateHistoryRepository) ListByKind(ctx context.Context, kind string, li
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	changes := make([]models.StateChange, 0)
 	for rows.Next() {

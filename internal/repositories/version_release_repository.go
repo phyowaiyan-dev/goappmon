@@ -67,7 +67,9 @@ func (r *VersionReleaseRepository) ListByPlatform(ctx context.Context, platform 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	releases := make([]models.VersionRelease, 0)
 	for rows.Next() {
