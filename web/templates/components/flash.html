@@ -1,0 +1,14 @@
+{{ define "flash" }}
+<div class="toast toast-end toast-bottom z-50 p-4">
+  {{ if .Notice }}
+  <div class="alert alert-success shadow" data-toast-notification>
+    <span>{{ .Notice }}</span>
+  </div>
+  {{ end }}
+  {{ if .Error }}
+  <div class="alert alert-error shadow" data-toast-notification>
+    <span>{{ .Error }}</span>
+  </div>
+  {{ end }}
+</div>
+{{ end }}

@@ -19,9 +19,11 @@ func TestSettingRepositoryLifecycle(t *testing.T) {
 
 	now := time.Unix(1_700_000_100, 0).UTC()
 	id, err := repo.Create(ctx, models.Setting{
+		AndroidEnabled:       true,
 		AppName:              "GoAppMon",
 		AndroidLatestVersion: "1.0.0",
 		AndroidMinVersion:    "1.0.0",
+		IOSEnabled:           true,
 		IOSLatestVersion:     "1.0.0",
 		IOSMinVersion:        "1.0.0",
 		CreatedAt:            now,
@@ -40,6 +42,9 @@ func TestSettingRepositoryLifecycle(t *testing.T) {
 	}
 	if current.AppName != "GoAppMon" || !current.CreatedAt.Equal(now) || !current.UpdatedAt.Equal(now) {
 		t.Fatalf("unexpected settings: %+v", current)
+	}
+	if !current.AndroidEnabled || !current.IOSEnabled {
+		t.Fatalf("expected platforms enabled by default in test fixture: %+v", current)
 	}
 
 	if err := repo.UpdateApplication(ctx, "App Two", "https://api.example.com"); err != nil {

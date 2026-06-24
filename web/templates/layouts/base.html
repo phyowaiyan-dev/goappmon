@@ -1,0 +1,131 @@
+{{ define "base" }}
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ if .Title }}{{ .Title }} · {{ appName }}{{ else }}{{ appName }}{{ end }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script defer src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    .htmx-indicator {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 180ms ease, visibility 180ms ease;
+    }
+
+    .htmx-request .htmx-indicator,
+    .htmx-request.htmx-indicator {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-base-300 text-base-content">
+  <div class="relative mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+    <div class="navbar bg-base-100 shadow-sm rounded-box">
+      <div class="navbar-start">
+        <a href="/admin" class="btn btn-ghost text-xl">
+          <span>{{ appName }}</span>
+          <span class="ml-2 text-[0.7rem] font-medium tracking-[0.24em] text-base-content/45">{{ appVersion }}</span>
+        </a>
+      </div>
+      <div class="navbar-end flex-nowrap gap-2">
+        {{ if .CurrentAdmin }}
+        <a href="/admin/postman-collection" class="btn btn-primary btn-sm hidden sm:inline-flex shrink-0">Download Postman API</a>
+        <form method="post" action="/admin/logout" class="shrink-0">
+          <button class="btn btn-error btn-sm inline-flex"><b>Logout</b></button>
+        </form>
+        {{ else }}
+        <a class="btn btn-ghost btn-sm" href="/admin/login">Login</a>
+        {{ end }}
+      </div>
+    </div>
+
+    {{ template "flash" . }}
+
+    <main class="flex-1 pt-6">
+      {{ template "content" . }}
+    </main>
+  </div>
+
+  <div id="about-modal" class="modal hidden">
+    <div class="modal-box max-w-2xl">
+      <button type="button" data-close-about class="btn btn-ghost btn-sm btn-circle absolute right-2 top-2">✕</button>
+      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-base-content/50">About</p>
+      <h2 class="mt-3 text-3xl font-semibold text-base-content">GoAppMon</h2>
+      <p class="mt-4 text-base-content/70">
+        GoAppMon is a small admin app for version history, maintenance messages, banners, feature flags, and audit logs.
+      </p>
+      <p class="mt-4 text-base-content/70">
+        Built and maintained by Phyo Wai Yan.
+      </p>
+      <div class="mt-6 flex flex-wrap items-center gap-3">
+        <a href="https://www.phyowaiyan.com/" target="_blank" rel="noreferrer" class="btn btn-primary">Visit phyowaiyan.com</a>
+        <a href="https://github.com/phyowaiyan-dev/goappmon" target="_blank" rel="noreferrer" class="btn btn-outline">phyowaiyan-dev/goappmon</a>
+        <span class="text-sm text-base-content/60">Go app admin.</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="mt-8 footer footer-center rounded-box border border-base-300 bg-base-200 p-10 text-base-content">
+    <nav class="grid grid-flow-col gap-4">
+      <p>GoAppMon by Phyo Wai Yan</p>
+      <a href="https://github.com/phyowaiyan-dev/goappmon" target="_blank" rel="noreferrer" class="link link-hover">GitHub</a>
+      <a href="https://www.phyowaiyan.com/" target="_blank" rel="noreferrer" class="link link-hover">phyowaiyan.com</a>
+    </nav>
+    <aside>
+      <p>Copyright © {{ yearNow }} - GoAppMon</p>
+    </aside>
+  </footer>
+
+  <script>
+    (() => {
+      const modal = document.getElementById('about-modal');
+      const openButtons = document.querySelectorAll('[data-open-about]');
+      const closeButtons = document.querySelectorAll('[data-close-about]');
+      const toastNotifications = document.querySelectorAll('[data-toast-notification]');
+
+      const openModal = () => {
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      };
+
+      const closeModal = () => {
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      };
+
+      openButtons.forEach((button) => button.addEventListener('click', openModal));
+      closeButtons.forEach((button) => button.addEventListener('click', closeModal));
+
+      if (modal) {
+        modal.addEventListener('click', (event) => {
+          if (event.target === modal) {
+            closeModal();
+          }
+        });
+      }
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closeModal();
+        }
+      });
+
+      toastNotifications.forEach((toast) => {
+        window.setTimeout(() => {
+          toast.classList.add('opacity-0', 'transition', 'duration-300');
+          window.setTimeout(() => {
+            toast.remove();
+          }, 300);
+        }, 5000);
+      });
+    })();
+  </script>
+</body>
+</html>
+{{ end }}

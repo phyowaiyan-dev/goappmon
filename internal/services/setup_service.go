@@ -50,8 +50,10 @@ func (s *SetupService) EnsureDefaultSettings(ctx context.Context) error {
 	now := time.Now().UTC()
 	_, err = repo.Create(ctx, models.Setting{
 		AppName:              "GoAppMon",
+		AndroidEnabled:       true,
 		AndroidLatestVersion: "1.0.0",
 		AndroidMinVersion:    "1.0.0",
+		IOSEnabled:           true,
 		IOSLatestVersion:     "1.0.0",
 		IOSMinVersion:        "1.0.0",
 		CreatedAt:            now,
@@ -98,8 +100,10 @@ func (s *SetupService) CreateInitialSetup(ctx context.Context, adminName, adminE
 	}
 	if _, err = txSettings.Create(ctx, models.Setting{
 		AppName:              appName,
+		AndroidEnabled:       true,
 		AndroidLatestVersion: "1.0.0",
 		AndroidMinVersion:    "1.0.0",
+		IOSEnabled:           true,
 		IOSLatestVersion:     "1.0.0",
 		IOSMinVersion:        "1.0.0",
 		CreatedAt:            now,

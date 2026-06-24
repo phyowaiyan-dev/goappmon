@@ -1,0 +1,45 @@
+{{ define "content" }}
+<section class="rounded-box border border-base-300 bg-base-200 p-6 shadow-sm">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div class="flex items-start gap-4">
+      <a href="/admin" class="btn btn-ghost btn-sm mt-1">Back</a>
+      <div>
+      <p class="text-xs font-semibold uppercase tracking-[0.3em] text-base-content/50">Logs</p>
+      <h2 class="mt-3 text-3xl font-semibold text-base-content">Audit log</h2>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+        Search recent admin actions. Keep it simple and quick.
+      </p>
+      </div>
+    </div>
+    <div class="rounded-box border border-base-300 bg-base-100 px-4 py-3 text-right">
+      <div class="text-xs uppercase tracking-[0.25em] text-base-content/50">Total logs</div>
+      <div class="mt-1 text-2xl font-semibold text-base-content">{{ .Total }}</div>
+    </div>
+  </div>
+
+  <form method="get" action="/admin/audit-logs" hx-get="/admin/audit-logs" hx-target="#audit-log-table-wrapper" hx-swap="outerHTML" hx-push-url="true" class="mt-6 rounded-box border border-base-300 bg-base-100 p-4">
+    <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px]">
+      <label class="block">
+        <span class="mb-2 block text-sm text-base-content/70">Search</span>
+        <input name="q" value="{{ .Query }}" class="input input-bordered w-full" placeholder="Search action, entity, actor, IP...">
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm text-base-content/70">Page size</span>
+        <select name="page_size" class="select select-bordered w-full">
+          <option value="10" {{ if eq .PageSize 10 }}selected{{ end }}>10</option>
+          <option value="20" {{ if eq .PageSize 20 }}selected{{ end }}>20</option>
+          <option value="50" {{ if eq .PageSize 50 }}selected{{ end }}>50</option>
+          <option value="100" {{ if eq .PageSize 100 }}selected{{ end }}>100</option>
+        </select>
+      </label>
+    </div>
+    <input type="hidden" name="page" value="1">
+    <div class="mt-4 flex items-center gap-3">
+      <button class="btn btn-primary">Apply filters</button>
+      <a href="/admin/audit-logs" class="btn btn-ghost">Reset</a>
+    </div>
+  </form>
+
+  {{ template "audit-logs-table" . }}
+</section>
+{{ end }}

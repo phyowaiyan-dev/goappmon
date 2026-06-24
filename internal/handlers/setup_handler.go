@@ -24,12 +24,12 @@ func (h *SetupHandler) Page(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/admin/login")
 		return
 	}
-	_ = h.renderer.RenderPage(c.Writer, "setup.html", PageData{Title: "Initial Setup"})
+	_ = h.renderer.RenderPage(c.Writer, "setup.html", PageData{Title: "Initial Setup", Authenticated: false})
 }
 
 func (h *SetupHandler) Submit(c *gin.Context) {
 	if err := c.Request.ParseForm(); err != nil {
-		_ = h.renderer.RenderPage(c.Writer, "setup.html", PageData{Title: "Initial Setup", Error: "Invalid setup form"})
+		_ = h.renderer.RenderPage(c.Writer, "setup.html", PageData{Title: "Initial Setup", Error: "Invalid setup form", Authenticated: false})
 		return
 	}
 
@@ -40,43 +40,47 @@ func (h *SetupHandler) Submit(c *gin.Context) {
 
 	if adminName == "" || adminEmail == "" || password == "" || appName == "" {
 		_ = h.renderer.RenderPage(c.Writer, "setup.html", PageData{
-			Title:      "Initial Setup",
-			Error:      "All fields are required",
-			AdminName:  adminName,
-			AdminEmail: adminEmail,
-			AppName:    appName,
+			Title:         "Initial Setup",
+			Error:         "All fields are required",
+			AdminName:     adminName,
+			AdminEmail:    adminEmail,
+			AppName:       appName,
+			Authenticated: false,
 		})
 		return
 	}
 
 	if err := utils.ValidateAdminName(adminName); err != nil {
 		_ = h.renderer.RenderPage(c.Writer, "setup.html", PageData{
-			Title:      "Initial Setup",
-			Error:      err.Error(),
-			AdminName:  adminName,
-			AdminEmail: adminEmail,
-			AppName:    appName,
+			Title:         "Initial Setup",
+			Error:         err.Error(),
+			AdminName:     adminName,
+			AdminEmail:    adminEmail,
+			AppName:       appName,
+			Authenticated: false,
 		})
 		return
 	}
 	if err := utils.ValidateEmail(adminEmail); err != nil {
 		_ = h.renderer.RenderPage(c.Writer, "setup.html", PageData{
-			Title:      "Initial Setup",
-			Error:      err.Error(),
-			AdminName:  adminName,
-			AdminEmail: adminEmail,
-			AppName:    appName,
+			Title:         "Initial Setup",
+			Error:         err.Error(),
+			AdminName:     adminName,
+			AdminEmail:    adminEmail,
+			AppName:       appName,
+			Authenticated: false,
 		})
 		return
 	}
 
 	if err := h.setupService.CreateInitialSetup(c.Request.Context(), adminName, adminEmail, password, appName); err != nil {
 		_ = h.renderer.RenderPage(c.Writer, "setup.html", PageData{
-			Title:      "Initial Setup",
-			Error:      "Setup could not be completed",
-			AdminName:  adminName,
-			AdminEmail: adminEmail,
-			AppName:    appName,
+			Title:         "Initial Setup",
+			Error:         "Setup could not be completed",
+			AdminName:     adminName,
+			AdminEmail:    adminEmail,
+			AppName:       appName,
+			Authenticated: false,
 		})
 		return
 	}

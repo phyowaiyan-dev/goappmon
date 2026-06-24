@@ -17,10 +17,12 @@ func TestStatusServicePublicViews(t *testing.T) {
 
 	now := time.Unix(1_700_000_300, 0).UTC()
 	if _, err := settingsRepo.Create(ctx, models.Setting{
+		AndroidEnabled:       true,
 		AppName:              "GoAppMon",
 		AndroidLatestVersion: "1.2.0",
 		AndroidMinVersion:    "1.0.0",
 		AndroidForceUpdate:   true,
+		IOSEnabled:           true,
 		IOSLatestVersion:     "1.1.0",
 		IOSMinVersion:        "1.0.0",
 		IOSForceUpdate:       false,

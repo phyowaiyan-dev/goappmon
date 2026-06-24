@@ -34,7 +34,15 @@ Common options:
 Depending on the future project shape, releases may include:
 
 - Go module versions
-- CLI binaries
-- container images
+- CLI binaries for Linux, macOS, and Windows
 - release notes
 
+For `goappmon`, the GitHub release workflow builds runnable archives for:
+
+- Linux `amd64`
+- Linux `arm64`
+- macOS `amd64`
+- macOS `arm64`
+- Windows `amd64`
+
+That means production operators can download a release asset and run the binary directly on the target server without rebuilding from source.

@@ -34,7 +34,7 @@ func TestLoadUsesDefaults(t *testing.T) {
 	t.Setenv("GOAPPMON_COOKIE_NAME", "")
 
 	cfg := Load()
-	if cfg.Address != ":8080" {
+	if cfg.Address != ":18180" {
 		t.Fatalf("unexpected default address: %s", cfg.Address)
 	}
 	if cfg.DatabasePath != "storage/goappmon.sqlite" || cfg.SessionKeyPath != "storage/session.key" {

@@ -15,7 +15,7 @@ func TestFullHTTPFlow(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/setup", nil)
 	app.router.ServeHTTP(rec, req)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Create the first admin account") {
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Create admin account") {
 		t.Fatalf("unexpected setup page response: %d", rec.Code)
 	}
 
@@ -44,7 +44,7 @@ func TestFullHTTPFlow(t *testing.T) {
 	rec = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, "/admin/login", nil)
 	app.router.ServeHTTP(rec, req)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Sign in to the dashboard") {
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Sign in") {
 		t.Fatalf("unexpected login page response: %d", rec.Code)
 	}
 
@@ -78,6 +78,16 @@ func TestFullHTTPFlow(t *testing.T) {
 	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Admin Dashboard") {
 		t.Fatalf("unexpected dashboard response: %d", rec.Code)
 	}
+	if !strings.Contains(rec.Body.String(), "See All logs") {
+		t.Fatalf("expected audit log link in dashboard, got %q", rec.Body.String())
+	}
+	rec = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, "/admin/system-health", nil)
+	req.AddCookie(sessionCookie)
+	app.router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Server and runtime overview") {
+		t.Fatalf("unexpected system health fragment response: %d %q", rec.Code, rec.Body.String())
+	}
 
 	rec = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, "/admin/postman-collection", nil)
@@ -91,6 +101,14 @@ func TestFullHTTPFlow(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "\"Health\"") || !strings.Contains(rec.Body.String(), "\"Admin Login\"") {
 		t.Fatalf("expected postman collection payload, got %q", rec.Body.String())
+	}
+
+	rec = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, "/admin/audit-logs", nil)
+	req.AddCookie(sessionCookie)
+	app.router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Audit Log") {
+		t.Fatalf("unexpected audit logs page response: %d %q", rec.Code, rec.Body.String())
 	}
 
 	// Login page should redirect when already authenticated.
@@ -137,6 +155,28 @@ func TestFullHTTPFlow(t *testing.T) {
 	if rec := post("/admin/feature-flags", url.Values{"key": {"payment"}, "enabled": {"false"}}); rec.Code != http.StatusFound {
 		t.Fatalf("expected create second flag redirect, got %d", rec.Code)
 	}
+	if rec := post("/admin/version/android", url.Values{
+		"latest_version":  {"3.0.0"},
+		"minimum_version": {"2.5.0"},
+		"force_update":    {"false"},
+		"release_notes":   {"android v3"},
+	}); rec.Code != http.StatusFound {
+		t.Fatalf("expected android publish redirect, got %d", rec.Code)
+	}
+	if rec := post("/admin/version/ios", url.Values{
+		"latest_version":  {"3.1.0"},
+		"minimum_version": {"2.6.0"},
+		"force_update":    {"true"},
+		"release_notes":   {"ios v3"},
+	}); rec.Code != http.StatusFound {
+		t.Fatalf("expected ios publish redirect, got %d", rec.Code)
+	}
+	if rec := post("/admin/version/android/delete", url.Values{}); rec.Code != http.StatusFound {
+		t.Fatalf("expected android delete redirect, got %d", rec.Code)
+	}
+	if rec := post("/admin/version/ios/delete", url.Values{}); rec.Code != http.StatusFound {
+		t.Fatalf("expected ios delete redirect, got %d", rec.Code)
+	}
 
 	// Verify dashboard shows success notice and updated content.
 	rec = httptest.NewRecorder()
@@ -145,6 +185,13 @@ func TestFullHTTPFlow(t *testing.T) {
 	app.router.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Application settings updated.") {
 		t.Fatalf("expected dashboard notice, got %d %q", rec.Code, rec.Body.String())
+	}
+	rec = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, "/admin?success=version_deleted", nil)
+	req.AddCookie(sessionCookie)
+	app.router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Version release deleted.") {
+		t.Fatalf("expected version deleted notice, got %d %q", rec.Code, rec.Body.String())
 	}
 
 	// Feature flag update/delete.

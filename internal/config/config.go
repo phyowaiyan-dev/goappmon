@@ -18,7 +18,7 @@ type Config struct {
 
 func Load() Config {
 	return Config{
-		Address:         getEnv("GOAPPMON_ADDR", ":8080"),
+		Address:         getEnv("GOAPPMON_ADDR", ":18180"),
 		DatabasePath:    getEnv("GOAPPMON_DB_PATH", "storage/goappmon.sqlite"),
 		SessionKeyPath:  getEnv("GOAPPMON_SESSION_KEY_PATH", "storage/session.key"),
 		LogLevel:        parseLogLevel(getEnv("GOAPPMON_LOG_LEVEL", "info")),

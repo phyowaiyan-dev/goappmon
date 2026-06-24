@@ -81,8 +81,12 @@ func New(cfg config.Config, logger *slog.Logger) (*App, error) {
 	authService := services.NewAuthService(adminRepo, sessionSecret, time.Duration(cfg.SessionDuration)*time.Second)
 	statusService := services.NewStatusService(settingRepo, flagRepo)
 	startedAt := time.Now().UTC()
-	adminService := services.NewAdminService(settingRepo, flagRepo, cfg.DatabasePath, startedAt)
-	renderer := newTemplateRenderer()
+	adminService := services.NewAdminService(db, settingRepo, flagRepo, cfg.DatabasePath, startedAt)
+	renderer, err := newTemplateRenderer()
+	if err != nil {
+		_ = db.Close()
+		return nil, err
+	}
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -137,18 +141,7 @@ func (a *App) Run(ctx context.Context) error {
 }
 
 func (a *App) RenderPage(w http.ResponseWriter, page string, data any) error {
-	tpl, err := template.New("layout.html").Funcs(template.FuncMap{
-		"boolLabel": func(v bool) string {
-			if v {
-				return "Enabled"
-			}
-			return "Disabled"
-		},
-	}).ParseFS(web.TemplatesFS, "templates/layout.html", "templates/"+page)
-	if err != nil {
-		return err
-	}
-	return tpl.ExecuteTemplate(w, "layout", data)
+	return a.renderer.RenderPage(w, page, data)
 }
 
 func (a *App) registerRoutes() {
@@ -181,9 +174,14 @@ func (a *App) registerRoutes() {
 	adminGroup := a.router.Group("/admin")
 	adminGroup.Use(middleware.RequireAuth(a.authService, a.adminRepo, a.cfg.CookieName))
 	adminGroup.GET("", adminHandler.Dashboard)
+	adminGroup.GET("/system-health", adminHandler.SystemHealthPanel)
 	adminGroup.GET("/postman-collection", adminHandler.DownloadPostmanCollection)
+	adminGroup.GET("/audit-logs", adminHandler.AuditLogsPage)
+	adminGroup.POST("/platforms", adminHandler.UpdatePlatforms)
 	adminGroup.POST("/settings/application", adminHandler.UpdateApplication)
 	adminGroup.POST("/settings/version", adminHandler.UpdateVersion)
+	adminGroup.POST("/version/:platform", adminHandler.PublishVersion)
+	adminGroup.POST("/version/:platform/delete", adminHandler.DeleteCurrentVersion)
 	adminGroup.POST("/settings/maintenance", adminHandler.UpdateMaintenance)
 	adminGroup.POST("/settings/banner", adminHandler.UpdateBanner)
 	adminGroup.POST("/feature-flags", adminHandler.CreateFlag)
@@ -223,23 +221,125 @@ func loggingMiddleware(logger *slog.Logger) gin.HandlerFunc {
 	}
 }
 
-type templateRenderer struct{}
+type templateRenderer struct {
+	baseTemplates     *template.Template
+	fragmentTemplates *template.Template
+}
 
-func newTemplateRenderer() *templateRenderer {
-	return &templateRenderer{}
+func newTemplateRenderer() (*templateRenderer, error) {
+	funcMap := templateFuncs()
+	baseTemplates, err := template.New("base").Funcs(funcMap).ParseFS(web.TemplatesFS,
+		"templates/layouts/*.html",
+		"templates/components/*.html",
+	)
+	if err != nil {
+		return nil, err
+	}
+	fragmentTemplates, err := template.New("fragments").Funcs(funcMap).ParseFS(web.TemplatesFS,
+		"templates/components/*.html",
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &templateRenderer{
+		baseTemplates:     baseTemplates,
+		fragmentTemplates: fragmentTemplates,
+	}, nil
 }
 
 func (r *templateRenderer) RenderPage(w http.ResponseWriter, page string, data any) error {
-	tpl, err := template.New("layout.html").Funcs(template.FuncMap{
+	tpl, err := r.baseTemplates.Clone()
+	if err != nil {
+		return fmt.Errorf("clone base templates: %w", err)
+	}
+	if _, err := tpl.ParseFS(web.TemplatesFS, "templates/pages/"+page); err != nil {
+		return fmt.Errorf("parse template %s: %w", page, err)
+	}
+	if err := tpl.ExecuteTemplate(w, "base", data); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *templateRenderer) RenderFragment(w http.ResponseWriter, fragment string, data any) error {
+	tpl, err := r.fragmentTemplates.Clone()
+	if err != nil {
+		return fmt.Errorf("clone fragment templates: %w", err)
+	}
+	if err := tpl.ExecuteTemplate(w, fragment, data); err != nil {
+		return err
+	}
+	return nil
+}
+
+func templateFuncs() template.FuncMap {
+	return template.FuncMap{
+		"humanTime": func(t time.Time) string {
+			if t.IsZero() {
+				return "-"
+			}
+			now := time.Now()
+			localTime := t.In(now.Location())
+			now = now.In(now.Location())
+
+			if localTime.After(now) {
+				return localTime.Format("Jan 2, 2006 3:04 PM")
+			}
+
+			diff := now.Sub(localTime)
+			switch {
+			case diff < time.Minute:
+				return "just now"
+			case diff < time.Hour:
+				minutes := int(diff.Minutes())
+				if minutes == 1 {
+					return "1 minute ago"
+				}
+				return fmt.Sprintf("%d minutes ago", minutes)
+			case diff < 24*time.Hour && sameDay(now, localTime):
+				hours := int(diff.Hours())
+				if hours == 1 {
+					return "1 hour ago"
+				}
+				return fmt.Sprintf("%d hours ago", hours)
+			case diff < 48*time.Hour:
+				return "Yesterday at " + localTime.Format("3:04 PM")
+			case diff < 7*24*time.Hour:
+				return localTime.Format("Mon at 3:04 PM")
+			default:
+				return localTime.Format("Jan 2, 2006 3:04 PM")
+			}
+		},
+		"appName": func() string {
+			return config.AppName
+		},
+		"appVersion": func() string {
+			return config.AppVersion
+		},
+		"yearNow": func() int {
+			return time.Now().Year()
+		},
 		"boolLabel": func(v bool) string {
 			if v {
 				return "Enabled"
 			}
 			return "Disabled"
 		},
-	}).ParseFS(web.TemplatesFS, "templates/layout.html", "templates/"+page)
-	if err != nil {
-		return fmt.Errorf("parse template %s: %w", page, err)
+		"usageTone": func(v float64) string {
+			switch {
+			case v >= 85:
+				return "error"
+			case v >= 70:
+				return "warning"
+			default:
+				return "success"
+			}
+		},
 	}
-	return tpl.ExecuteTemplate(w, "layout", data)
+}
+
+func sameDay(a, b time.Time) bool {
+	ay, am, ad := a.Date()
+	by, bm, bd := b.Date()
+	return ay == by && am == bm && ad == bd
 }

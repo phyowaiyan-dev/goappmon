@@ -30,16 +30,18 @@ func (r *SettingRepository) Count(ctx context.Context) (int64, error) {
 func (r *SettingRepository) Create(ctx context.Context, setting models.Setting) (int64, error) {
 	result, err := r.db.ExecContext(ctx, `
 		INSERT INTO settings (
-			app_name, android_latest_version, android_min_version, android_force_update,
-			ios_latest_version, ios_min_version, ios_force_update,
+			app_name, android_enabled, android_latest_version, android_min_version, android_force_update,
+			ios_enabled, ios_latest_version, ios_min_version, ios_force_update,
 			maintenance_mode, maintenance_message, banner_enabled, banner_message, api_url,
 			created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		setting.AppName,
+		boolToInt(setting.AndroidEnabled),
 		setting.AndroidLatestVersion,
 		setting.AndroidMinVersion,
 		boolToInt(setting.AndroidForceUpdate),
+		boolToInt(setting.IOSEnabled),
 		setting.IOSLatestVersion,
 		setting.IOSMinVersion,
 		boolToInt(setting.IOSForceUpdate),
@@ -59,8 +61,8 @@ func (r *SettingRepository) Create(ctx context.Context, setting models.Setting) 
 
 func (r *SettingRepository) GetCurrent(ctx context.Context) (*models.Setting, error) {
 	row := r.db.QueryRowContext(ctx, `
-		SELECT id, app_name, android_latest_version, android_min_version, android_force_update,
-		       ios_latest_version, ios_min_version, ios_force_update, maintenance_mode,
+		SELECT id, app_name, android_enabled, android_latest_version, android_min_version, android_force_update,
+		       ios_enabled, ios_latest_version, ios_min_version, ios_force_update, maintenance_mode,
 		       maintenance_message, banner_enabled, banner_message, api_url, created_at, updated_at
 		FROM settings
 		ORDER BY id ASC
@@ -89,6 +91,33 @@ func (r *SettingRepository) UpdateVersion(ctx context.Context, androidLatest, an
 		    updated_at = ?
 		WHERE id = (SELECT id FROM settings ORDER BY id ASC LIMIT 1)
 	`, androidLatest, androidMin, boolToInt(androidForce), iosLatest, iosMin, boolToInt(iosForce))
+}
+
+func (r *SettingRepository) UpdatePlatformVersion(ctx context.Context, platform, latest, minimum string, force bool) error {
+	switch platform {
+	case "android":
+		return r.update(ctx, `
+			UPDATE settings
+			SET android_latest_version = ?, android_min_version = ?, android_force_update = ?, updated_at = ?
+			WHERE id = (SELECT id FROM settings ORDER BY id ASC LIMIT 1)
+		`, latest, minimum, boolToInt(force))
+	case "ios":
+		return r.update(ctx, `
+			UPDATE settings
+			SET ios_latest_version = ?, ios_min_version = ?, ios_force_update = ?, updated_at = ?
+			WHERE id = (SELECT id FROM settings ORDER BY id ASC LIMIT 1)
+		`, latest, minimum, boolToInt(force))
+	default:
+		return ErrSettingsNotFound
+	}
+}
+
+func (r *SettingRepository) UpdatePlatforms(ctx context.Context, androidEnabled, iosEnabled bool) error {
+	return r.update(ctx, `
+		UPDATE settings
+		SET android_enabled = ?, ios_enabled = ?, updated_at = ?
+		WHERE id = (SELECT id FROM settings ORDER BY id ASC LIMIT 1)
+	`, boolToInt(androidEnabled), boolToInt(iosEnabled))
 }
 
 func (r *SettingRepository) UpdateMaintenance(ctx context.Context, enabled bool, message string) error {
@@ -125,14 +154,16 @@ func (r *SettingRepository) update(ctx context.Context, query string, args ...an
 
 func scanSetting(row *sql.Row) (*models.Setting, error) {
 	var setting models.Setting
-	var androidForce, iosForce, maintenanceMode, bannerEnabled int
+	var androidEnabled, androidForce, iosEnabled, iosForce, maintenanceMode, bannerEnabled int
 	var createdAt, updatedAt int64
 	if err := row.Scan(
 		&setting.ID,
 		&setting.AppName,
+		&androidEnabled,
 		&setting.AndroidLatestVersion,
 		&setting.AndroidMinVersion,
 		&androidForce,
+		&iosEnabled,
 		&setting.IOSLatestVersion,
 		&setting.IOSMinVersion,
 		&iosForce,
@@ -149,7 +180,9 @@ func scanSetting(row *sql.Row) (*models.Setting, error) {
 		}
 		return nil, err
 	}
+	setting.AndroidEnabled = androidEnabled != 0
 	setting.AndroidForceUpdate = androidForce != 0
+	setting.IOSEnabled = iosEnabled != 0
 	setting.IOSForceUpdate = iosForce != 0
 	setting.MaintenanceMode = maintenanceMode != 0
 	setting.BannerEnabled = bannerEnabled != 0

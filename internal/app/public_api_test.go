@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/phyowaiyan-dev/goappmon/internal/config"
+	"github.com/phyowaiyan-dev/goappmon/internal/services"
 )
 
 func newTestApp(t *testing.T) *App {
@@ -59,22 +60,25 @@ func TestPublicAPIsAfterSetup(t *testing.T) {
 	if err := app.setupService.CreateInitialSetup(ctx, "Admin", "admin@example.com", "secret123", "GoAppMon"); err != nil {
 		t.Fatalf("create setup: %v", err)
 	}
-	if err := app.adminService.UpdateApplication(ctx, "GoAppMon Plus", "https://api.example.com"); err != nil {
+	if err := app.adminService.UpdateApplication(ctx, services.ActionMeta{}, "GoAppMon Plus", "https://api.example.com"); err != nil {
 		t.Fatalf("update application: %v", err)
 	}
-	if err := app.adminService.UpdateVersion(ctx, "2.0.0", "1.5.0", true, "2.1.0", "1.6.0", false); err != nil {
-		t.Fatalf("update version: %v", err)
+	if err := app.adminService.PublishVersion(ctx, services.ActionMeta{}, "android", "2.0.0", "1.5.0", true, "android release"); err != nil {
+		t.Fatalf("publish android version: %v", err)
 	}
-	if err := app.adminService.UpdateMaintenance(ctx, true, "maintenance"); err != nil {
+	if err := app.adminService.PublishVersion(ctx, services.ActionMeta{}, "ios", "2.1.0", "1.6.0", false, "ios release"); err != nil {
+		t.Fatalf("publish ios version: %v", err)
+	}
+	if err := app.adminService.UpdateMaintenance(ctx, services.ActionMeta{}, true, "maintenance"); err != nil {
 		t.Fatalf("update maintenance: %v", err)
 	}
-	if err := app.adminService.UpdateBanner(ctx, true, "banner"); err != nil {
+	if err := app.adminService.UpdateBanner(ctx, services.ActionMeta{}, true, "banner"); err != nil {
 		t.Fatalf("update banner: %v", err)
 	}
-	if err := app.adminService.CreateFlag(ctx, "chat", true); err != nil {
+	if err := app.adminService.CreateFlag(ctx, services.ActionMeta{}, "chat", true); err != nil {
 		t.Fatalf("create flag: %v", err)
 	}
-	if err := app.adminService.CreateFlag(ctx, "payment", false); err != nil {
+	if err := app.adminService.CreateFlag(ctx, services.ActionMeta{}, "payment", false); err != nil {
 		t.Fatalf("create flag: %v", err)
 	}
 

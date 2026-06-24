@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/phyowaiyan-dev/goappmon/internal/models"
@@ -38,6 +39,20 @@ func (r *FeatureFlagRepository) List(ctx context.Context) ([]models.FeatureFlag,
 		return nil, err
 	}
 	return flags, nil
+}
+
+func (r *FeatureFlagRepository) GetByID(ctx context.Context, id int64) (*models.FeatureFlag, error) {
+	row := r.db.QueryRowContext(ctx, `SELECT id, key, enabled FROM feature_flags WHERE id = ?`, id)
+	var flag models.FeatureFlag
+	var enabled int
+	if err := row.Scan(&flag.ID, &flag.Key, &enabled); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrFeatureFlagNotFound
+		}
+		return nil, err
+	}
+	flag.Enabled = enabled != 0
+	return &flag, nil
 }
 
 func (r *FeatureFlagRepository) Create(ctx context.Context, key string, enabled bool) (int64, error) {

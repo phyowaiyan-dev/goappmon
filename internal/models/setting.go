@@ -5,9 +5,11 @@ import "time"
 type Setting struct {
 	ID                   int64     `json:"id"`
 	AppName              string    `json:"app_name"`
+	AndroidEnabled       bool      `json:"android_enabled"`
 	AndroidLatestVersion string    `json:"android_latest_version"`
 	AndroidMinVersion    string    `json:"android_min_version"`
 	AndroidForceUpdate   bool      `json:"android_force_update"`
+	IOSEnabled           bool      `json:"ios_enabled"`
 	IOSLatestVersion     string    `json:"ios_latest_version"`
 	IOSMinVersion        string    `json:"ios_min_version"`
 	IOSForceUpdate       bool      `json:"ios_force_update"`
