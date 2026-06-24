@@ -82,7 +82,9 @@ func (r *AuditLogRepository) Search(ctx context.Context, filter AuditLogFilter) 
 	if err != nil {
 		return AuditLogPage{}, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	logs := make([]models.AuditLog, 0)
 	for rows.Next() {

@@ -53,7 +53,9 @@ func tableColumns(ctx context.Context, db *sql.DB, table string) (map[string]str
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	columns := make(map[string]struct{})
 	for rows.Next() {

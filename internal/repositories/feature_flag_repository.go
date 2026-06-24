@@ -23,7 +23,9 @@ func (r *FeatureFlagRepository) List(ctx context.Context) ([]models.FeatureFlag,
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	flags := make([]models.FeatureFlag, 0)
 	for rows.Next() {
@@ -105,7 +107,9 @@ func (r *FeatureFlagRepository) AsMap(ctx context.Context) (map[string]bool, err
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	flags := make(map[string]bool)
 	for rows.Next() {
